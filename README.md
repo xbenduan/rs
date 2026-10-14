@@ -283,13 +283,15 @@ go vet ./...
 govulncheck ./...
 ```
 
-生成全部发布产物：
+提交全部源码变更后，确认已通过 `gh auth login` 登录 GitHub，然后执行：
 
 ```bash
 ./scripts/release.sh
 ```
 
-构建结果写入被 Git 忽略的 `releases/`，正式二进制只通过 [GitHub Releases](https://github.com/xbenduan/rs/releases) 分发。
+脚本从 `server/server.go` 读取版本，要求 `CHANGELOG.md` 存在对应版本说明，完成检查和全平台构建，
+校验 `releases/` 中的产物后，自动推送当前分支、创建同名 `vX.Y.Z` 标签并发布
+[GitHub Release](https://github.com/xbenduan/rs/releases)。`releases/` 始终被 Git 忽略，正式二进制只通过 Release 分发。
 
 ## 当前边界
 

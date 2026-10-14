@@ -17,6 +17,7 @@
 - 文件上传：`rs push` 分块传输、严格长度校验、`fsync` 落盘、原子 no-replace 提交。
 - 健康检查：`rs health` 验证 DNS、TLS、登录、短期会话与 gRPC 全链路。
 - 本机重置：`rs credential reset` 仅能在 VPS 本机重建全部凭证并生成新的单次领取链接。
+- 发布脚本完成检查和全平台构建后，自动创建版本标签、GitHub Release 并上传全部产物。
 
 ### 安全
 

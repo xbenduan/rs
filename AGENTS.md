@@ -28,8 +28,12 @@
 3. 同步更新 `README.md`、`skill/rs/SKILL.md` 和 `skill/rs/references/` 中涉及命令、
    协议、安装或升级路径的内容，并保持全部下载指导使用 `latest`。
 4. 运行 `gofmt -w`、`go test ./...` 和 `go vet ./...`。
-5. 运行 `./scripts/release.sh`，重新生成全部发布产物，禁止只替换单个平台文件。
-6. 确认 `releases/` 至少包含：
+5. 提交源码、技能和更新日志。不得 `git add -f releases/`，不得把任何发布二进制写入
+   Git 历史。
+6. 确认已通过 `gh auth login` 登录 GitHub，然后运行 `./scripts/release.sh`。脚本会再次执行
+   格式、静态检查与测试，重新生成并校验全部发布产物，推送当前分支和同名版本标签，并以
+   `CHANGELOG.md` 对应版本作为发布说明直接创建 GitHub Release。禁止只替换单个平台文件。
+7. `releases/` 至少包含：
    - `rs-darwin-amd64`
    - `rs-darwin-arm64`
    - `rs-linux-amd64`
@@ -38,11 +42,7 @@
    - `rs-windows-arm64.exe`
    - `skill.zip`
    - `SHA256SUMS`
-7. 使用 `(cd releases && shasum -a 256 -c SHA256SUMS)` 校验产物。
-8. 提交源码、技能和更新日志。不得 `git add -f releases/`，不得把任何发布二进制写入
-   Git 历史。
-9. 发布 GitHub Release 时使用相同版本号的 `vX.Y.Z` 标签，以 `CHANGELOG.md` 对应版本
-   作为发布说明，并上传 `releases/` 中的全部文件。
+   脚本会使用 `(cd releases && shasum -a 256 -c SHA256SUMS)` 校验以上产物后再发布。
 
 ## 发布约束
 
