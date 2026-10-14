@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package rs;
+
+option go_package = "atlas/rs/gen/rs;rs";
+
+// Rs provides remote shell, file upload and health checks.
+service Rs {
+  // Shell executes a script on the remote host and streams its output.
+  rpc Shell(ShellRequest) returns (stream ShellOutput);
+  // Upload streams a file to the remote host.
+  rpc Upload(stream UploadRequest) returns (UploadAck);
+  // Health probes the server.
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+// ─── Shell ───
+
+message ShellRequest {
+  string script          = 1;
+  int32  timeout_seconds = 2;
+}
+
+message ShellOutput {
+  bytes  data      = 1;
+  Stream stream    = 2;
+  int32  exit_code = 3;
+  bool   exited    = 4;
+
+  enum Stream {
+    STDOUT = 0;
+    STDERR = 1;
+  }
+}
+
+// ─── Upload (local → remote) ───
+
+message UploadRequest {
+  oneof payload {
+    UploadHeader header = 1;
+    bytes        data   = 2;
+  }
+}
+
+message UploadHeader {
+  string path      = 1; // absolute target path
+  int64  size      = 2; // declared file size in bytes
+  bool   mkdir     = 3; // create parent directories
+  bool   overwrite = 4; // overwrite an existing file
+}
+
+message UploadAck {
+  int64  bytes_written = 1;
+  string error         = 2;
+}
+
+// ─── Health ───
+
+message HealthRequest {}
+
+message HealthResponse {
+  string version = 1;
+}

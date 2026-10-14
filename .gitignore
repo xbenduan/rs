@@ -1,0 +1,29 @@
+# 构建产物（go build -o rs . 及跨平台二进制）
+/rs
+/rs.exe
+
+# 发布暂存目录：由 scripts/release.sh 生成，仅通过 GitHub Releases 分发
+/releases/
+
+# Go 测试与分析产物
+*.test
+*.out
+*.prof
+go.work
+go.work.sum
+
+# 敏感凭证与运行时状态（切勿提交）
+.env
+.rs-private/
+.rs-auth.json
+*.rs-claim-url
+*.rs-recovery.json
+
+# 本地工具与编辑器
+.gh/
+.vscode/
+.idea/
+.trae/
+
+# 操作系统杂项
+.DS_Store
