@@ -70,6 +70,7 @@ rs client ───── HTTPS / gRPC ───── rs server
 | 退出语义 | 透传远端退出码，连接中断不会被误报为成功 |
 | 文件上传 | 分块传输、严格大小校验、超时回收和原子 no-replace |
 | 健康检查 | 验证 DNS、TLS、登录、短期会话和 gRPC 全链路 |
+| 客户端更新 | 检查 GitHub latest Release，校验 SHA-256 后原子替换 |
 | 本机重置 | 仅能在 VPS 本机重建全部凭证并生成新的单次领取链接 |
 
 ## 设计原则
@@ -188,6 +189,16 @@ rs health prod
 
 升级时从 GitHub `latest` Release 下载并校验客户端与服务端产物。先在独立 loopback 端口启动候选服务并通过 HTTPS Health 验证，再切换正式服务；旧服务、旧二进制和 Caddy 备份必须保留到新服务重启验证完成。完整流程由随 Release 发布的 Skill 执行。
 
+仅更新 macOS 或 Linux 客户端时可直接执行：
+
+```bash
+rs update
+```
+
+命令先检查 latest 标签，仅在发现更高版本时下载当前平台产物和 `SHA256SUMS`，校验通过后
+在当前二进制目录内完成原子替换。Windows 无法可靠替换运行中的可执行文件，仍按安装章节
+手工下载并校验。
+
 ### 执行任务
 
 ```bash
@@ -220,6 +231,7 @@ rs shell <node> "<script>" [--timeout N]
 rs push <node> <local> <remote> [--mkdir] [--overwrite] [--timeout N]
 rs health <node>
 rs credential reset [--state FILE] [--name NAME] [--claim-url-file FILE]
+rs update
 ```
 
 ## 安全模型
@@ -234,6 +246,9 @@ rs credential reset [--state FILE] [--name NAME] [--claim-url-file FILE]
 - 一次性领取只接受 `POST`；链接预览、扫描器的 `GET`/`HEAD` 访问不会消耗链接。
 - 登录响应携带节点 ID 与服务端版本；主版本不兼容或节点 ID 与本地记录不一致时，客户端拒绝执行远程操作。
 - `rs serve` 运行期间独占认证 state 锁，`credential reset` 必须先停止服务。
+- `node list`、`health`、`shell` 与 `push` 只读本地节点文件，不创建锁文件或其他本地文件。
+- 客户端本地写入仅发生在节点变更和 `rs update` 原子替换当前二进制时；`init`、`serve`
+  与 `credential reset` 作为显式服务端管理命令，会写入用户指定的认证 state 或锁文件。
 - Unix 服务端在命令超时时终止整个进程组。
 - 文件上传默认以原子 no-replace 提交拒绝覆盖，并通过严格长度校验和 `fsync` 落盘。
 - Windows 客户端使用当前用户 DPAPI 加密节点文件中的密码；macOS 与 Linux 依赖 `0600` 文件权限（新建目录为 `0700`，已存在目录权限保持不变）。
@@ -302,7 +317,7 @@ latest 版本尚未提供：
 - 除节点列表外的 JSON 输出与稳定错误码
 - 异步任务、日志续查和执行历史
 - 命令级授权、风险策略和人工审批
-- 自动升级与回滚
+- 服务端自动升级与回滚
 - macOS Keychain 与 Linux Secret Service 集成
 
 这些能力会围绕 Agent 运维的可理解、可约束和可验证性逐步扩展。交互式远程桌面和大型监控平台不属于近期方向。

@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"atlas/rs/internal/fsx"
 	"atlas/rs/internal/protocol"
@@ -47,16 +48,27 @@ const maxNodeJSONSize = 1 << 20
 
 // loadNodes reads the node list. A missing file is an empty list.
 func loadNodes() ([]Node, error) {
-	unlock, err := lockNodes()
-	if err != nil {
-		return nil, err
-	}
-	defer unlock()
 	return loadNodesUnlocked()
 }
 
+var nodeLocks sync.Map
+
 func lockNodes() (func() error, error) {
-	return fsx.LockFile(nodeFile() + ".lock")
+	path := nodeFile()
+	value, _ := nodeLocks.LoadOrStore(path, new(sync.Mutex))
+	mutex := value.(*sync.Mutex)
+	mutex.Lock()
+
+	unlock, err := lockNodeStorage(path)
+	if err != nil {
+		mutex.Unlock()
+		return nil, err
+	}
+	return func() error {
+		err := unlock()
+		mutex.Unlock()
+		return err
+	}, nil
 }
 
 func loadNodesUnlocked() ([]Node, error) {

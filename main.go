@@ -54,6 +54,8 @@ func main() {
 		os.Exit(cmdHealth(args))
 	case "credential":
 		os.Exit(cmdCredential(args))
+	case "update":
+		os.Exit(cmdUpdate(args))
 	default:
 		usage()
 		os.Exit(1)
@@ -75,6 +77,7 @@ Usage:
   rs push <node> <local> <remote> [--mkdir] [--overwrite] [--timeout N]
   rs health <node>
   rs credential reset [--state FILE] [--name NAME] [--claim-url-file FILE]
+  rs update
 `, version)
 }
 

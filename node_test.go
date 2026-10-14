@@ -57,6 +57,9 @@ func TestNodeFileIsPrivate(t *testing.T) {
 	if info.Mode().Perm() != 0o600 {
 		t.Fatalf("node file mode = %o, want 600", info.Mode().Perm())
 	}
+	if _, err := os.Stat(path + ".lock"); !os.IsNotExist(err) {
+		t.Fatalf("node update created a lock file: %v", err)
+	}
 	loaded, err := findNode("prod")
 	if err != nil {
 		t.Fatal(err)
@@ -244,6 +247,9 @@ func TestNodeListJSONOmitsPasswords(t *testing.T) {
 		if !strings.Contains(output, value) {
 			t.Fatalf("node list JSON missing %q: %s", value, output)
 		}
+	}
+	if _, err := os.Stat(path + ".lock"); !os.IsNotExist(err) {
+		t.Fatalf("node list created a lock file: %v", err)
 	}
 }
 

@@ -54,6 +54,15 @@ Windows 使用 PowerShell，根据 `$env:PROCESSOR_ARCHITECTURE` 选择 `amd64` 
 `arm64`，下载对应 `.exe` 和 `SHA256SUMS`，用 `Get-FileHash -Algorithm SHA256`
 比对后将文件保存为用户 PATH 中的 `rs.exe`。不得在校验前执行。
 
+已安装的 macOS 或 Linux 客户端可直接更新：
+
+```bash
+~/.local/bin/rs update
+```
+
+命令只在 latest 版本更高且 SHA-256 校验通过后原子替换当前二进制。Windows 客户端仍按
+上面的 PowerShell 流程手工更新。
+
 ## 安装 Linux 服务端
 
 通过用户提供的 SSH 连接执行以下等价步骤：

@@ -16,7 +16,7 @@ const authorizationMetadataKey = "authorization"
 
 // Version is the server version reported by Health; the CLI mirrors it as
 // its own version string so a single bump keeps both in sync.
-const Version = "1.0.0"
+const Version = "1.1.0"
 
 // Config holds the runtime configuration of an rs server.
 type Config struct {

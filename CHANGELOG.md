@@ -2,6 +2,22 @@
 
 本文件记录 `rs` 的版本历史。版本号唯一来源是 `server/server.go` 中的 `Version`。
 
+## v1.1.0 - 2026-10-14
+
+### 功能
+
+- 新增 `rs update`，自动检查 GitHub latest Release；仅在发现更高版本时下载当前平台产物，
+  严格校验 `SHA256SUMS` 后原子替换当前客户端。
+- macOS 与 Linux 支持客户端自更新；Windows 为避免运行中替换产生残留文件，继续使用
+  latest Release 手工校验安装。
+
+### 变更
+
+- 节点读取不再创建或持有 `<node.json>.lock`；`node list`、`health`、`shell` 和 `push`
+  只读本地节点文件，不产生任何本地文件写入。
+- 节点新增、删除和领取改用 Unix 目录锁或 Windows 命名互斥量配合原子替换保护并发写入，
+  不再创建持久锁文件。
+
 ## v1.0.0 - 2026-10-14
 
 首个正式发行版本。

@@ -3,9 +3,11 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"unsafe"
 
@@ -36,6 +38,33 @@ func unprotectNodePassword(password string) (string, error) {
 		return "", fmt.Errorf("DPAPI decrypt: %w", err)
 	}
 	return string(plaintext), nil
+}
+
+func lockNodeStorage(path string) (func() error, error) {
+	absolute, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+	name, err := windows.UTF16PtrFromString(fmt.Sprintf(`Local\rs-node-%x`, sha256.Sum256([]byte(absolute))))
+	if err != nil {
+		return nil, err
+	}
+	mutex, err := windows.CreateMutex(nil, false, name)
+	if err != nil {
+		return nil, err
+	}
+	result, err := windows.WaitForSingleObject(mutex, windows.INFINITE)
+	if err != nil {
+		_ = windows.CloseHandle(mutex)
+		return nil, err
+	}
+	if result != windows.WAIT_OBJECT_0 && result != windows.WAIT_ABANDONED {
+		_ = windows.CloseHandle(mutex)
+		return nil, fmt.Errorf("wait for node mutex returned %d", result)
+	}
+	return func() error {
+		return errors.Join(windows.ReleaseMutex(mutex), windows.CloseHandle(mutex))
+	}, nil
 }
 
 func dpapi(input []byte, protect bool) ([]byte, error) {

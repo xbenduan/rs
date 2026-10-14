@@ -204,6 +204,17 @@ rs.example.com {
 用户要求升级客户端、服务端或“部署最新版本”时，必须先完整读取
 [upgrade.md](references/upgrade.md) 并严格执行。升级必须满足：
 
+仅更新 macOS 或 Linux 客户端时运行：
+
+```bash
+"$RS_BIN" update
+```
+
+命令检查 GitHub latest 标签，仅在版本更高时下载当前平台产物和 `SHA256SUMS`，校验通过后
+原子替换当前二进制。Windows 不支持运行中原子替换，继续按安装参考手工下载和校验。
+
+升级服务端时：
+
 1. 从 GitHub latest Release 下载 `SHA256SUMS` 和目标平台产物并校验。
 2. 升级前确认当前 Health 成功，并保留可用 SSH 回滚通道。
 3. 新服务先以独立 unit、独立 loopback 端口和认证状态副本启动。
@@ -222,6 +233,7 @@ rs.example.com {
 "$RS_BIN" node list --json
 "$RS_BIN" node add --json
 "$RS_BIN" node rm <name>
+"$RS_BIN" update
 ```
 
 - shell 脚本整段作为一个参数传入，服务端通过 `sh -c` 原样执行。
@@ -229,6 +241,8 @@ rs.example.com {
 - push 目标必须是绝对路径；默认原子拒绝覆盖，`--overwrite` 才允许覆盖；完整调用默认
   300 秒超时，可通过 `--timeout N` 调整。
 - 所有远程能力都要求 HTTPS 密码登录后签发的短期会话。
+- `node list`、`health`、`shell` 和 `push` 读取本地节点时不创建锁文件；客户端本地写入
+  仅限节点变更和 `update` 原子替换当前二进制。
 
 ## 八、在 VPS 本机重置凭证
 
